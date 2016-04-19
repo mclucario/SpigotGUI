@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Text;
+using System.Xml.Serialization;
 using System.IO;
 using System.Windows.Forms;
 using System.Diagnostics;
@@ -7,23 +7,37 @@ using System.Diagnostics;
 namespace SpigotServerGUI
 {
 
-
     public partial class Form1 : Form
     {
 
-        public const string MyJarPath = @"X:\Programming\Compile\Spigot 1.9\craftbukkit-1.9.jar";
-        public const string version = "1.0.0";
+        public class serverSettingsClass
+        {
+
+            public int Xms;
+            public int Xmx;
+            public bool agreeEula;
+
+        }
+
+        public string versionPath = Directory.GetCurrentDirectory() + @"\ServerVersions";
         public string jarPath = "";
         public string jarName = "";
 
+        public const string MyJarPath = @"X:\Programming\Compile\Spigot 1.9\craftbukkit-1.9.jar";
+        public const string version = "1.0.0";
+
         public int lineCount = 0;
 
-        public string versionPath = Directory.GetCurrentDirectory() + @"\ServerVersions";
-        
         public ProcessStartInfo javaStartInfo;
         public Process javaProcess;
 
+        public XmlSerializer XMLSL;
+
+        public StreamWriter StrWr;
+
         public FileDialog jarFileDialog = new OpenFileDialog();
+
+        public serverSettingsClass serverSettings = new serverSettingsClass();
 
         public Form1()
         {
@@ -98,10 +112,26 @@ namespace SpigotServerGUI
 
         }
 
+        private void button7_Click(object sender, EventArgs e)
+        {
+
+            deleteSelectedVersion();
+            reloadVersions();
+
+        }
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+
+            writeXmlSettings();
+
+        }
+
         public void startServer()
         {
 
             textBox1.Text = null;
+            tabControl1.SelectedIndex = 1;
 
             jarPath = versionPath + @"\" + jarName + @"\" + jarName + ".jar";
 
@@ -110,6 +140,7 @@ namespace SpigotServerGUI
             javaStartInfo.RedirectStandardInput = true;
             javaStartInfo.UseShellExecute = false;
             javaStartInfo.WorkingDirectory = Path.GetDirectoryName(jarPath);
+            javaStartInfo.CreateNoWindow = true;
             javaProcess = Process.Start(javaStartInfo);
 
             javaProcess.OutputDataReceived += new DataReceivedEventHandler((consoleSender, consoleE) =>
@@ -166,6 +197,12 @@ namespace SpigotServerGUI
 
         }
 
+        public void deleteSelectedVersion() {
+
+            Directory.Delete(versionPath + @"\" + listBox1.GetItemText(listBox1.SelectedItem), true);
+
+        }
+
         public void setJarVersion() {
 
             jarName = listBox1.GetItemText(listBox1.SelectedItem);
@@ -173,5 +210,28 @@ namespace SpigotServerGUI
 
         }
 
+        public void writeXmlSettings() {
+
+            serverSettings = new serverSettingsClass();
+            serverSettings.Xms = Convert.ToInt32(numericUpDown2.Value);
+            serverSettings.Xmx = Convert.ToInt32(numericUpDown1.Value);
+            serverSettings.agreeEula = checkBox2.Checked;
+
+            File.WriteAllText(versionPath + @"\" + jarName + @"\" + "ssgui.xml", "");
+            StrWr = new StreamWriter(versionPath + @"\" + jarName + @"\" + "ssgui.xml");
+
+            ///XMLSL.Serialize(StrWr, serverSettings);
+
+            StrWr.Flush();
+            StrWr.Close();
+
+        }
+
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+
+            Process.Start("https://account.mojang.com/documents/minecraft_eula");
+
+        }
     }
 }
