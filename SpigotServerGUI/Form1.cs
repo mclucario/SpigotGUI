@@ -19,7 +19,7 @@ namespace SpigotServerGUI
         public string[] bufferArray;
 
         public const string MyJarPath = @"X:\Programming\Compile\Spigot 1.9\craftbukkit-1.9.jar";
-        public const string version = "0.8.0";
+        public const string version = "1.0.0";
 
         public int lineCount = 0;
 
@@ -54,11 +54,14 @@ namespace SpigotServerGUI
             if (!File.Exists(Directory.GetCurrentDirectory() + @"\ssgui.properties"))
             {
 
-                File.Create(Directory.GetCurrentDirectory() + @"\ssgui.properties");
+                StrWr = new StreamWriter(Directory.GetCurrentDirectory() + @"\ssgui.properties", true);
+                StrWr.Flush();
+                StrWr.Close();
 
             }
 
             reloadVersions();
+            reloadPlugins();
             readSettings(2);
 
         }
@@ -126,6 +129,7 @@ namespace SpigotServerGUI
 
             deleteSelectedVersion();
             reloadVersions();
+            jarName = "";
 
         }
 
@@ -152,53 +156,23 @@ namespace SpigotServerGUI
 
             //Toggle Plugin
 
-            if (listBox2.SelectedItems.Count == 0 && listBox3.SelectedItems.Count == 0)
-            {
 
-                MessageBox.Show("Please select a plugin first.", "Select Plugin", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-            }
-            else if (listBox2.SelectedItems.Count == 1 && listBox3.SelectedItems.Count == 0)
-            {
-
-                try
-                {
-
-                    File.Move(versionPath + @"\plugins\" + listBox2.SelectedItem, versionPath + @"\plugins\_disabled\" + listBox2.SelectedItem);
-
-                }
-                catch (Exception ex)
-                {
-
-                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                }
+        reloadPlugins();
 
             }
-            else if (listBox2.SelectedItems.Count == 0 && listBox3.SelectedItems.Count == 1)
-            {
-
-                try
-                {
-
-                    File.Move(versionPath + @"\plugins\" + listBox3.SelectedItem, versionPath + @"\plugins\_disabled\" + listBox3.SelectedItem);
-
-                }
-                catch (Exception ex)
-                {
-
-                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                }
-
-            }
-
-        }
 
         private void button11_Click(object sender, EventArgs e)
         {
 
             reloadPlugins();
+
+        }
+
+        private void button12_Click(object sender, EventArgs e)
+        {
+
+            importPlugins();
 
         }
 
@@ -325,7 +299,7 @@ namespace SpigotServerGUI
             if (!jarFileDialog.CheckFileExists)
             {
 
-                MessageBox.Show("Couldn't find file", "File missing", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Couldn't find selected file", "File missing", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
 
             }
@@ -333,7 +307,7 @@ namespace SpigotServerGUI
             try
             {
 
-                File.Copy(jarFileDialog.FileName, versionPath + @"\plugins\" + Path.GetFileName(jarFileDialog.FileName));
+                File.Copy(jarFileDialog.FileName, versionPath +  @"\" + jarName + @"\plugins\" + Path.GetFileName(jarFileDialog.FileName));
 
             }
             catch (Exception ex)
@@ -353,31 +327,77 @@ namespace SpigotServerGUI
             listBox2.Items.Clear();
             listBox3.Items.Clear();
 
-            if (!Directory.Exists(versionPath + @"\plugins"))
+            if (!Directory.Exists(versionPath + @"\" + jarName + @"\plugins\"))
             {
 
-                Directory.CreateDirectory(versionPath + @"\plugins");
+                Directory.CreateDirectory(versionPath + @"\" + jarName + @"\plugins\");
 
             }
 
-            if (!Directory.Exists(versionPath + @"\plugins\_disabled"))
+            if (!Directory.Exists(versionPath + @"\" + jarName + @"\plugins\\_disabled"))
             {
 
-                Directory.CreateDirectory(versionPath + @"\plugins\_disabled");
+                Directory.CreateDirectory(versionPath + @"\" + jarName + @"\plugins\\_disabled");
 
             }
 
-            foreach (string modFile in Directory.GetFiles(versionPath + @"\plugins"))
+            foreach (string modFile in Directory.GetFiles(versionPath + @"\" + jarName + @"\plugins\"))
             {
 
-                listBox2.Items.Add(modFile);
+                listBox2.Items.Add(Path.GetFileName(modFile));
+                
+            }
+
+            foreach (string modFile in Directory.GetFiles(versionPath + @"\" + jarName + @"\plugins\\_disabled"))
+            {
+
+                listBox3.Items.Add(Path.GetFileName(modFile));
 
             }
 
-            foreach (string modFile in Directory.GetFiles(versionPath + @"\plugins\_disabled"))
+        }
+
+        public void togglePlugin()
+        {
+
+            if (listBox2.SelectedItems.Count == 0 && listBox3.SelectedItems.Count == 0)
             {
 
-                listBox3.Items.Add(modFile);
+                MessageBox.Show("Please select a plugin first.", "Select Plugin", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            }
+            else if (listBox2.SelectedItems.Count == 1 && listBox3.SelectedItems.Count == 0)
+            {
+
+                try
+                {
+
+                    File.Move(versionPath + @"\" + jarName + @"\plugins\" + listBox2.SelectedItem, versionPath + @"\" + jarName + @"\plugins\_disabled\" + listBox2.SelectedItem);
+
+                }
+                catch (Exception ex)
+                {
+
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                }
+
+            }
+            else if (listBox2.SelectedItems.Count == 0 && listBox3.SelectedItems.Count == 1)
+            {
+
+                try
+                {
+
+                    File.Move(versionPath + @"\" + jarName + @"\plugins\" + listBox3.SelectedItem, versionPath + @"\" + jarName + @"\plugins\_disabled\" + listBox3.SelectedItem);
+
+                }
+                catch (Exception ex)
+                {
+
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                }
 
             }
 
@@ -398,7 +418,7 @@ namespace SpigotServerGUI
                 try
                 {
 
-                    File.Delete(versionPath + @"\plugins\" + listBox2.SelectedItem);
+                    File.Delete(versionPath +  @"\" + jarName + @"\plugins\" + listBox2.SelectedItem);
 
                 }
                 catch (Exception ex)
@@ -415,7 +435,7 @@ namespace SpigotServerGUI
                 try
                 {
 
-                    File.Delete(versionPath + @"\plugins\_disabled\" + listBox2.SelectedItem);
+                    File.Delete(versionPath +  @"\" + jarName + @"\plugins\_disabled\" + listBox2.SelectedItem);
 
                 }
                 catch (Exception ex)
@@ -484,14 +504,13 @@ namespace SpigotServerGUI
         public void readSettings(int mode)
         {
 
-            //readSetthings:
+            //readSettings:
             //Mode - 0   Only load the programm settings
             //Mode - 1   Only load the current jar settings
             //Mode - 2   Load Both
 
-            if (mode == 0 || mode == 2)
-            {
-
+            if (mode == 0 || mode == 2 && File.Exists(Directory.GetCurrentDirectory() + @"\ssgui.properties"))
+            { 
                 StrRd = new StreamReader(Directory.GetCurrentDirectory() + @"\ssgui.properties");
 
                 while ((bufferLine = StrRd.ReadLine()) != null)
@@ -526,7 +545,7 @@ namespace SpigotServerGUI
 
             }
 
-            if (mode == 1 || mode == 2)
+            if (mode == 1 || mode == 2 && File.Exists(versionPath + @"\" + jarName + @"\ssguiv.properties"))
             {
 
                 if (jarName == "") {
