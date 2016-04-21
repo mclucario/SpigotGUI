@@ -11,7 +11,6 @@ namespace SpigotServerGUI
 
         public int Xms;
         public int Xmx;
-        public bool agreeEula;
 
         public string versionPath = Directory.GetCurrentDirectory() + @"\ServerVersions";
         public string jarPath = "";
@@ -30,7 +29,7 @@ namespace SpigotServerGUI
         public StreamWriter StrWr;
         public StreamReader StrRd;
 
-        public FileDialog jarFileDialog = new OpenFileDialog();
+        public FileDialog jarFileDialog;
 
 
         public Form1()
@@ -59,16 +58,14 @@ namespace SpigotServerGUI
 
             }
 
-            jarFileDialog.Filter = "Jar File (*.jar)|*.jar;";
             reloadVersions();
-
             readSettings(2);
 
         }
 
         private void Form1_Closing(object sender, EventArgs e)
         {
-            
+
             writeSettings();
             javaProcess.Kill();
 
@@ -150,6 +147,83 @@ namespace SpigotServerGUI
 
         }
 
+        private void button10_Click(object sender, EventArgs e)
+        {
+
+            //Toggle Plugin
+
+            if (listBox2.SelectedItems.Count == 0 && listBox3.SelectedItems.Count == 0)
+            {
+
+                MessageBox.Show("Please select a plugin first.", "Select Plugin", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            }
+            else if (listBox2.SelectedItems.Count == 1 && listBox3.SelectedItems.Count == 0)
+            {
+
+                try
+                {
+
+                    File.Move(versionPath + @"\plugins\" + listBox2.SelectedItem, versionPath + @"\plugins\_disabled\" + listBox2.SelectedItem);
+
+                }
+                catch (Exception ex)
+                {
+
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                }
+
+            }
+            else if (listBox2.SelectedItems.Count == 0 && listBox3.SelectedItems.Count == 1)
+            {
+
+                try
+                {
+
+                    File.Move(versionPath + @"\plugins\" + listBox3.SelectedItem, versionPath + @"\plugins\_disabled\" + listBox3.SelectedItem);
+
+                }
+                catch (Exception ex)
+                {
+
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                }
+
+            }
+
+        }
+
+        private void button11_Click(object sender, EventArgs e)
+        {
+
+            reloadPlugins();
+
+        }
+
+        private void button13_Click(object sender, EventArgs e)
+        {
+
+            deletePlugin();
+
+        }
+
+        private void listBox2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+            listBox3.ClearSelected();
+
+        }
+
+        private void listBox3_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+            listBox2.ClearSelected();
+
+        }
+
+
         public void startServer()
         {
 
@@ -159,6 +233,7 @@ namespace SpigotServerGUI
             jarPath = versionPath + @"\" + jarName + @"\" + jarName + ".jar";
 
             javaStartInfo = new ProcessStartInfo("java", "-Xms" + numericUpDown2.Value.ToString() + "M " + "-Xmx" + numericUpDown1.Value.ToString() + "M -jar " + '"' + jarPath + '"' + " nogui");
+
             javaStartInfo.RedirectStandardOutput = true;
             javaStartInfo.RedirectStandardInput = true;
             javaStartInfo.UseShellExecute = false;
@@ -181,6 +256,8 @@ namespace SpigotServerGUI
 
         public void createVersion()
         {
+
+            clearFileDialouge();
 
             if (jarFileDialog.ShowDialog() == DialogResult.Cancel)
             {
@@ -207,7 +284,7 @@ namespace SpigotServerGUI
             }
 
             Debug.Print(versionPath + @"\" + Path.GetFileNameWithoutExtension(jarFileDialog.FileName) + @"\" + Path.GetFileName(jarFileDialog.FileName));
-            File.Copy(jarFileDialog.FileName, versionPath + @"\" + Path.GetFileNameWithoutExtension(jarFileDialog.FileName) + @"\" + Path.GetFileName(jarFileDialog.FileName)); /// + @"\" + Path.GetFileName(jarFileDialog.FileName)
+            File.Copy(jarFileDialog.FileName, versionPath + @"\" + Path.GetFileNameWithoutExtension(jarFileDialog.FileName) + @"\" + Path.GetFileName(jarFileDialog.FileName));
 
             reloadVersions();
         }
@@ -221,6 +298,132 @@ namespace SpigotServerGUI
             {
 
                 listBox1.Items.Add(directory.Replace(versionPath + @"\", ""));
+
+            }
+
+        }
+
+        public void importPlugins() {
+
+            clearFileDialouge();
+
+            if (jarName == "")
+            {
+
+                MessageBox.Show("No Version Seleted, cannot import plugins.", "No Version", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+
+            }
+
+            if (jarFileDialog.ShowDialog() == DialogResult.Cancel)
+            {
+
+                return;
+
+            }
+
+            if (!jarFileDialog.CheckFileExists)
+            {
+
+                MessageBox.Show("Couldn't find file", "File missing", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+
+            }
+
+            try
+            {
+
+                File.Copy(jarFileDialog.FileName, versionPath + @"\plugins\" + Path.GetFileName(jarFileDialog.FileName));
+
+            }
+            catch (Exception ex)
+            {
+
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            }
+
+            reloadPlugins();
+
+        }
+
+        public void reloadPlugins()
+        {
+
+            listBox2.Items.Clear();
+            listBox3.Items.Clear();
+
+            if (!Directory.Exists(versionPath + @"\plugins"))
+            {
+
+                Directory.CreateDirectory(versionPath + @"\plugins");
+
+            }
+
+            if (!Directory.Exists(versionPath + @"\plugins\_disabled"))
+            {
+
+                Directory.CreateDirectory(versionPath + @"\plugins\_disabled");
+
+            }
+
+            foreach (string modFile in Directory.GetFiles(versionPath + @"\plugins"))
+            {
+
+                listBox2.Items.Add(modFile);
+
+            }
+
+            foreach (string modFile in Directory.GetFiles(versionPath + @"\plugins\_disabled"))
+            {
+
+                listBox3.Items.Add(modFile);
+
+            }
+
+        }
+
+        public void deletePlugin()
+        {
+
+            if (listBox2.SelectedItems.Count == 0 && listBox3.SelectedItems.Count == 0)
+            {
+
+                MessageBox.Show("Please select a plugin first.", "Select Plugin", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            }
+            else if (listBox2.SelectedItems.Count == 1 && listBox3.SelectedItems.Count == 0)
+            {
+
+                try
+                {
+
+                    File.Delete(versionPath + @"\plugins\" + listBox2.SelectedItem);
+
+                }
+                catch (Exception ex)
+                {
+
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                }
+
+            }
+            else if (listBox2.SelectedItems.Count == 0 && listBox3.SelectedItems.Count == 1)
+            {
+
+                try
+                {
+
+                    File.Delete(versionPath + @"\plugins\_disabled\" + listBox2.SelectedItem);
+
+                }
+                catch (Exception ex)
+                {
+
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                }
 
             }
 
@@ -263,12 +466,18 @@ namespace SpigotServerGUI
 
             Xms = Convert.ToInt32(numericUpDown2.Value);
             Xmx = Convert.ToInt32(numericUpDown1.Value);
-            agreeEula = checkBox2.Checked;
 
-            StrWr.WriteLine("Xms=" + Xms + Environment.NewLine + "Xmx=" + Xmx + Environment.NewLine + "agreeEULA=" + agreeEula);
+            StrWr.WriteLine("Xms=" + Xms + Environment.NewLine + "Xmx=" + Xmx);
 
             StrWr.Flush();
             StrWr.Close();
+
+        }
+
+        public void clearFileDialouge() {
+
+            jarFileDialog = new OpenFileDialog();
+            jarFileDialog.Filter = "Jar File (*.jar)|*.jar;";
 
         }
 
@@ -301,7 +510,7 @@ namespace SpigotServerGUI
                                 //select case for more settings later
                         }
 
-                        label5.Text = "Current Version: " + jarName; 
+                        label5.Text = "Current Version: " + jarName;
 
                     }
                     catch (Exception e)
@@ -319,6 +528,12 @@ namespace SpigotServerGUI
 
             if (mode == 1 || mode == 2)
             {
+
+                if (jarName == "") {
+
+                    return;
+
+                }
 
                 StrRd = new StreamReader(versionPath + @"\" + jarName + @"\ssguiv.properties");
 
@@ -338,9 +553,6 @@ namespace SpigotServerGUI
                             case "xms":
                                 Xms = Convert.ToUInt16(bufferArray[1]);
                                 break;
-                            case "agreeEULA=":
-                                agreeEula = Convert.ToBoolean(bufferArray[1]);
-                                break;
 
                         }
 
@@ -357,7 +569,6 @@ namespace SpigotServerGUI
                 StrRd.Close();
 
             }
-
         }
 
     }
