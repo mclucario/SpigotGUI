@@ -31,6 +31,8 @@
             this.components = new System.ComponentModel.Container();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.button9 = new System.Windows.Forms.Button();
+            this.button8 = new System.Windows.Forms.Button();
             this.checkBox2 = new System.Windows.Forms.CheckBox();
             this.linkLabel1 = new System.Windows.Forms.LinkLabel();
             this.numericUpDown2 = new System.Windows.Forms.NumericUpDown();
@@ -58,8 +60,6 @@
             this.bindingSource1 = new System.Windows.Forms.BindingSource(this.components);
             this.directoryEntry1 = new System.DirectoryServices.DirectoryEntry();
             this.label6 = new System.Windows.Forms.Label();
-            this.button8 = new System.Windows.Forms.Button();
-            this.button9 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
@@ -106,6 +106,26 @@
             this.tabPage2.Size = new System.Drawing.Size(702, 391);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Server Control";
+            // 
+            // button9
+            // 
+            this.button9.Location = new System.Drawing.Point(87, 362);
+            this.button9.Name = "button9";
+            this.button9.Size = new System.Drawing.Size(75, 23);
+            this.button9.TabIndex = 16;
+            this.button9.Text = "Load";
+            this.button9.UseVisualStyleBackColor = true;
+            this.button9.Click += new System.EventHandler(this.button9_Click);
+            // 
+            // button8
+            // 
+            this.button8.Location = new System.Drawing.Point(6, 362);
+            this.button8.Name = "button8";
+            this.button8.Size = new System.Drawing.Size(75, 23);
+            this.button8.TabIndex = 15;
+            this.button8.Text = "Save";
+            this.button8.UseVisualStyleBackColor = true;
+            this.button8.Click += new System.EventHandler(this.button8_Click);
             // 
             // checkBox2
             // 
@@ -376,25 +396,6 @@
             this.label6.Size = new System.Drawing.Size(67, 13);
             this.label6.TabIndex = 4;
             this.label6.Text = "Verion: 0.0.0";
-            // 
-            // button8
-            // 
-            this.button8.Location = new System.Drawing.Point(6, 362);
-            this.button8.Name = "button8";
-            this.button8.Size = new System.Drawing.Size(75, 23);
-            this.button8.TabIndex = 15;
-            this.button8.Text = "Save";
-            this.button8.UseVisualStyleBackColor = true;
-            this.button8.Click += new System.EventHandler(this.button8_Click);
-            // 
-            // button9
-            // 
-            this.button9.Location = new System.Drawing.Point(87, 362);
-            this.button9.Name = "button9";
-            this.button9.Size = new System.Drawing.Size(75, 23);
-            this.button9.TabIndex = 16;
-            this.button9.Text = "Load";
-            this.button9.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 

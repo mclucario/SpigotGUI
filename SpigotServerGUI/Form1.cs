@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Xml.Serialization;
 using System.IO;
 using System.Windows.Forms;
 using System.Diagnostics;
@@ -10,34 +9,29 @@ namespace SpigotServerGUI
     public partial class Form1 : Form
     {
 
-        public class serverSettingsClass
-        {
-
-            public int Xms;
-            public int Xmx;
-            public bool agreeEula;
-
-        }
+        public int Xms;
+        public int Xmx;
+        public bool agreeEula;
 
         public string versionPath = Directory.GetCurrentDirectory() + @"\ServerVersions";
         public string jarPath = "";
         public string jarName = "";
+        public string bufferLine;
+        public string[] bufferArray;
 
         public const string MyJarPath = @"X:\Programming\Compile\Spigot 1.9\craftbukkit-1.9.jar";
-        public const string version = "1.0.0";
+        public const string version = "0.8.0";
 
         public int lineCount = 0;
 
         public ProcessStartInfo javaStartInfo;
         public Process javaProcess;
 
-        public XmlSerializer XMLSL;
-
         public StreamWriter StrWr;
+        public StreamReader StrRd;
 
         public FileDialog jarFileDialog = new OpenFileDialog();
 
-        public serverSettingsClass serverSettings = new serverSettingsClass();
 
         public Form1()
         {
@@ -48,6 +42,7 @@ namespace SpigotServerGUI
         private void Form1_Load(object sender, EventArgs e)
         {
 
+
             label6.Text = "Version: " + version;
 
             if (!Directory.Exists(versionPath))
@@ -57,15 +52,32 @@ namespace SpigotServerGUI
 
             }
 
+            if (!File.Exists(Directory.GetCurrentDirectory() + @"\ssgui.properties"))
+            {
+
+                File.Create(Directory.GetCurrentDirectory() + @"\ssgui.properties");
+
+            }
+
             jarFileDialog.Filter = "Jar File (*.jar)|*.jar;";
             reloadVersions();
+
+            readSettings(2);
 
         }
 
         private void Form1_Closing(object sender, EventArgs e)
         {
-
+            
+            writeSettings();
             javaProcess.Kill();
+
+        }
+
+        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+
+            Process.Start("https://account.mojang.com/documents/minecraft_eula");
 
         }
 
@@ -123,7 +135,18 @@ namespace SpigotServerGUI
         private void button8_Click(object sender, EventArgs e)
         {
 
-            writeXmlSettings();
+            writeSettings();
+
+        }
+
+        private void button9_Click(object sender, EventArgs e)
+        {
+            //readSetthings:
+            //Mode - 0   Only load the programm settings
+            //Mode - 1   Only load the current jar settings
+            //Mode - 2   Load Both
+
+            readSettings(1);
 
         }
 
@@ -135,7 +158,7 @@ namespace SpigotServerGUI
 
             jarPath = versionPath + @"\" + jarName + @"\" + jarName + ".jar";
 
-            javaStartInfo = new ProcessStartInfo("java","-Xms" + numericUpDown2.Value.ToString() + "M " + "-Xmx" + numericUpDown1.Value.ToString() + "M -jar " + '"' + jarPath + '"' + " nogui");
+            javaStartInfo = new ProcessStartInfo("java", "-Xms" + numericUpDown2.Value.ToString() + "M " + "-Xmx" + numericUpDown1.Value.ToString() + "M -jar " + '"' + jarPath + '"' + " nogui");
             javaStartInfo.RedirectStandardOutput = true;
             javaStartInfo.RedirectStandardInput = true;
             javaStartInfo.UseShellExecute = false;
@@ -156,24 +179,28 @@ namespace SpigotServerGUI
 
         }
 
-        public void createVersion() {
+        public void createVersion()
+        {
 
-            if (jarFileDialog.ShowDialog() == DialogResult.Cancel) {
+            if (jarFileDialog.ShowDialog() == DialogResult.Cancel)
+            {
 
                 return;
 
             }
 
-            if (!jarFileDialog.CheckFileExists) {
+            if (!jarFileDialog.CheckFileExists)
+            {
 
-                MessageBox.Show("Couldn't find file", "File missing" , MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Couldn't find file", "File missing", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
 
             }
 
             Directory.CreateDirectory(versionPath + @"\" + Path.GetFileNameWithoutExtension(jarFileDialog.FileName));
 
-            if (File.Exists(Path.GetDirectoryName(jarFileDialog.FileName) + @"\" + Path.GetFileNameWithoutExtension(jarFileDialog.FileName) + @"\" + Path.GetFileName(jarFileDialog.FileName))) {
+            if (File.Exists(Path.GetDirectoryName(jarFileDialog.FileName) + @"\" + Path.GetFileNameWithoutExtension(jarFileDialog.FileName) + @"\" + Path.GetFileName(jarFileDialog.FileName)))
+            {
 
                 File.Delete(Path.GetDirectoryName(jarFileDialog.FileName) + @"\" + Path.GetFileNameWithoutExtension(jarFileDialog.FileName) + @"\" + Path.GetFileName(jarFileDialog.FileName));
 
@@ -185,11 +212,13 @@ namespace SpigotServerGUI
             reloadVersions();
         }
 
-        public void reloadVersions() {
+        public void reloadVersions()
+        {
 
             listBox1.Items.Clear();
 
-            foreach (string directory in Directory.GetDirectories(versionPath)) {
+            foreach (string directory in Directory.GetDirectories(versionPath))
+            {
 
                 listBox1.Items.Add(directory.Replace(versionPath + @"\", ""));
 
@@ -197,41 +226,139 @@ namespace SpigotServerGUI
 
         }
 
-        public void deleteSelectedVersion() {
+        public void deleteSelectedVersion()
+        {
 
             Directory.Delete(versionPath + @"\" + listBox1.GetItemText(listBox1.SelectedItem), true);
 
         }
 
-        public void setJarVersion() {
+        public void setJarVersion()
+        {
 
             jarName = listBox1.GetItemText(listBox1.SelectedItem);
             label5.Text = "Current Version: " + jarName;
 
         }
 
-        public void writeXmlSettings() {
+        public void writeSettings()
+        {
 
-            serverSettings = new serverSettingsClass();
-            serverSettings.Xms = Convert.ToInt32(numericUpDown2.Value);
-            serverSettings.Xmx = Convert.ToInt32(numericUpDown1.Value);
-            serverSettings.agreeEula = checkBox2.Checked;
+            if (jarName == "")
+            {
 
-            File.WriteAllText(versionPath + @"\" + jarName + @"\" + "ssgui.xml", "");
-            StrWr = new StreamWriter(versionPath + @"\" + jarName + @"\" + "ssgui.xml");
+                MessageBox.Show("No Version Seleted", "No Version", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
 
-            ///XMLSL.Serialize(StrWr, serverSettings);
+            }
+
+            StrWr = new StreamWriter(Directory.GetCurrentDirectory() + @"\ssgui.properties", false);
+
+            StrWr.WriteLine("usingVersion=" + jarName);
+
+            StrWr.Flush();
+            StrWr.Close();
+
+            StrWr = new StreamWriter(versionPath + @"\" + jarName + @"\" + "ssguiv.properties", false);
+
+            Xms = Convert.ToInt32(numericUpDown2.Value);
+            Xmx = Convert.ToInt32(numericUpDown1.Value);
+            agreeEula = checkBox2.Checked;
+
+            StrWr.WriteLine("Xms=" + Xms + Environment.NewLine + "Xmx=" + Xmx + Environment.NewLine + "agreeEULA=" + agreeEula);
 
             StrWr.Flush();
             StrWr.Close();
 
         }
 
-        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        public void readSettings(int mode)
         {
 
-            Process.Start("https://account.mojang.com/documents/minecraft_eula");
+            //readSetthings:
+            //Mode - 0   Only load the programm settings
+            //Mode - 1   Only load the current jar settings
+            //Mode - 2   Load Both
+
+            if (mode == 0 || mode == 2)
+            {
+
+                StrRd = new StreamReader(Directory.GetCurrentDirectory() + @"\ssgui.properties");
+
+                while ((bufferLine = StrRd.ReadLine()) != null)
+                {
+
+                    bufferArray = bufferLine.Split(Convert.ToChar("="));
+
+                    try
+                    {
+
+                        switch (bufferArray[0])
+                        {
+                            case "usingVersion":
+                                jarName = bufferArray[1];
+                                break;
+                                //select case for more settings later
+                        }
+
+                        label5.Text = "Current Version: " + jarName; 
+
+                    }
+                    catch (Exception e)
+                    {
+
+                        MessageBox.Show(e.Message + Environment.NewLine + "Please Contact Support", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                    }
+
+                }
+
+                StrRd.Close();
+
+            }
+
+            if (mode == 1 || mode == 2)
+            {
+
+                StrRd = new StreamReader(versionPath + @"\" + jarName + @"\ssguiv.properties");
+
+                while ((bufferLine = StrRd.ReadLine()) != null)
+                {
+
+                    bufferArray = bufferLine.Split(Convert.ToChar("="));
+
+                    try
+                    {
+
+                        switch (bufferArray[0])
+                        {
+                            case "xmx":
+                                Xmx = Convert.ToUInt16(bufferArray[1]);
+                                break;
+                            case "xms":
+                                Xms = Convert.ToUInt16(bufferArray[1]);
+                                break;
+                            case "agreeEULA=":
+                                agreeEula = Convert.ToBoolean(bufferArray[1]);
+                                break;
+
+                        }
+
+                    }
+                    catch (Exception e)
+                    {
+
+                        MessageBox.Show(e.Message + Environment.NewLine + "Please Contact Support", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                    }
+
+                }
+
+                StrRd.Close();
+
+            }
 
         }
+
     }
 }
