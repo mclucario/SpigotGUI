@@ -61,7 +61,6 @@ namespace SpigotServerGUI
             }
 
             reloadVersions();
-            reloadPlugins();
             readSettings(2);
 
         }
@@ -157,10 +156,10 @@ namespace SpigotServerGUI
             //Toggle Plugin
 
 
+            togglePlugin();
+            reloadPlugins();
 
-        reloadPlugins();
-
-            }
+        }
 
         private void button11_Click(object sender, EventArgs e)
         {
@@ -277,7 +276,8 @@ namespace SpigotServerGUI
 
         }
 
-        public void importPlugins() {
+        public void importPlugins()
+        {
 
             clearFileDialouge();
 
@@ -307,7 +307,7 @@ namespace SpigotServerGUI
             try
             {
 
-                File.Copy(jarFileDialog.FileName, versionPath +  @"\" + jarName + @"\plugins\" + Path.GetFileName(jarFileDialog.FileName));
+                File.Copy(jarFileDialog.FileName, versionPath + @"\" + jarName + @"\plugins\" + Path.GetFileName(jarFileDialog.FileName));
 
             }
             catch (Exception ex)
@@ -324,6 +324,14 @@ namespace SpigotServerGUI
         public void reloadPlugins()
         {
 
+            if (jarName == "")
+            {
+
+                MessageBox.Show("No Version Seleted", "No Version", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+
+            }
+
             listBox2.Items.Clear();
             listBox3.Items.Clear();
 
@@ -334,10 +342,10 @@ namespace SpigotServerGUI
 
             }
 
-            if (!Directory.Exists(versionPath + @"\" + jarName + @"\plugins\\_disabled"))
+            if (!Directory.Exists(versionPath + @"\" + jarName + @"\plugins\_disabled"))
             {
 
-                Directory.CreateDirectory(versionPath + @"\" + jarName + @"\plugins\\_disabled");
+                Directory.CreateDirectory(versionPath + @"\" + jarName + @"\plugins\_disabled");
 
             }
 
@@ -345,10 +353,10 @@ namespace SpigotServerGUI
             {
 
                 listBox2.Items.Add(Path.GetFileName(modFile));
-                
+
             }
 
-            foreach (string modFile in Directory.GetFiles(versionPath + @"\" + jarName + @"\plugins\\_disabled"))
+            foreach (string modFile in Directory.GetFiles(versionPath + @"\" + jarName + @"\plugins\_disabled"))
             {
 
                 listBox3.Items.Add(Path.GetFileName(modFile));
@@ -359,6 +367,14 @@ namespace SpigotServerGUI
 
         public void togglePlugin()
         {
+
+            if (jarName == "")
+            {
+
+                MessageBox.Show("No Version Seleted", "No Version", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+
+            }
 
             if (listBox2.SelectedItems.Count == 0 && listBox3.SelectedItems.Count == 0)
             {
@@ -389,7 +405,7 @@ namespace SpigotServerGUI
                 try
                 {
 
-                    File.Move(versionPath + @"\" + jarName + @"\plugins\" + listBox3.SelectedItem, versionPath + @"\" + jarName + @"\plugins\_disabled\" + listBox3.SelectedItem);
+                    File.Move(versionPath + @"\" + jarName + @"\plugins\_disabled\" + listBox3.SelectedItem, versionPath + @"\" + jarName + @"\plugins\" + listBox3.SelectedItem);
 
                 }
                 catch (Exception ex)
@@ -406,6 +422,14 @@ namespace SpigotServerGUI
         public void deletePlugin()
         {
 
+            if (jarName == "")
+            {
+
+                MessageBox.Show("No Version Seleted", "No Version", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+
+            }
+
             if (listBox2.SelectedItems.Count == 0 && listBox3.SelectedItems.Count == 0)
             {
 
@@ -418,7 +442,7 @@ namespace SpigotServerGUI
                 try
                 {
 
-                    File.Delete(versionPath +  @"\" + jarName + @"\plugins\" + listBox2.SelectedItem);
+                    File.Delete(versionPath + @"\" + jarName + @"\plugins\" + listBox2.SelectedItem);
 
                 }
                 catch (Exception ex)
@@ -435,7 +459,7 @@ namespace SpigotServerGUI
                 try
                 {
 
-                    File.Delete(versionPath +  @"\" + jarName + @"\plugins\_disabled\" + listBox2.SelectedItem);
+                    File.Delete(versionPath + @"\" + jarName + @"\plugins\_disabled\" + listBox2.SelectedItem);
 
                 }
                 catch (Exception ex)
@@ -446,6 +470,8 @@ namespace SpigotServerGUI
                 }
 
             }
+
+            reloadPlugins();
 
         }
 
@@ -494,7 +520,8 @@ namespace SpigotServerGUI
 
         }
 
-        public void clearFileDialouge() {
+        public void clearFileDialouge()
+        {
 
             jarFileDialog = new OpenFileDialog();
             jarFileDialog.Filter = "Jar File (*.jar)|*.jar;";
@@ -510,7 +537,7 @@ namespace SpigotServerGUI
             //Mode - 2   Load Both
 
             if (mode == 0 || mode == 2 && File.Exists(Directory.GetCurrentDirectory() + @"\ssgui.properties"))
-            { 
+            {
                 StrRd = new StreamReader(Directory.GetCurrentDirectory() + @"\ssgui.properties");
 
                 while ((bufferLine = StrRd.ReadLine()) != null)
@@ -548,7 +575,8 @@ namespace SpigotServerGUI
             if (mode == 1 || mode == 2 && File.Exists(versionPath + @"\" + jarName + @"\ssguiv.properties"))
             {
 
-                if (jarName == "") {
+                if (jarName == "")
+                {
 
                     return;
 
@@ -590,5 +618,22 @@ namespace SpigotServerGUI
             }
         }
 
+        private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+            if (tabControl1.SelectedIndex == 3 && jarName != "")
+            {
+
+                reloadPlugins();
+
+            }
+
+            if (tabControl1.SelectedIndex == 2 && jarName != "")
+            {
+
+                reloadVersions();
+
+            }
+        }
     }
 }
